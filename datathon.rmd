@@ -1,0 +1,181 @@
+
+```{r}
+library('dplyr')
+library('tidyr')
+library('lubridate')
+library('ggplot2')
+library('plotly')
+library('data.table')
+library('tseries')
+library('forecast')
+
+
+setwd("C:/Users/Administrator/Documents/first semester/R programming")
+
+data <- fread("C:/Users/Administrator/Documents/first semester/R programming/data.csv")
+
+```
+
+
+
+```{r}
+## 1st_task
+## top 10 ravens with fails
+
+top_10_delay_with_fails = data%>%filter(FIRST_GET_RESPONSE_SUCCESS_D !=0 | PAGE_BROWSING_DELAY !=0 | 
+                               TCP_SETUP_TOTAL_DELAY !=0 | PAGE_CONTENT_DOWNLOAD_TOTAL_D !=0 | 
+                               FIRST_DNS_RESPONSE_SUCCESS_D !=0 | DNS_RESPONSE_SUCCESS_DELAY !=0 | 
+                               FIRST_TCP_RESPONSE_SUCCESS_D !=0 | PAGE_SR_DELAYS !=0 | 
+                               SYN_SYN_DELAY !=0 | TCP_CONNECT_DELAY !=0 | PAGE_BROWSING_DELAYS !=0)%>%
+                               group_by(RAVEN_NAME)%>%summarise(count = n())%>%arrange(-count)%>%head(10)
+
+View(top_10_delay_with_fails)
+
+
+## plot 1
+T1 = ggplot(top_10_delay_with_fails, aes(x= reorder(RAVEN_NAME,-count), y = count))+
+  geom_bar(stat = 'Identity', width = 0.5,aes(fill = RAVEN_NAME))+theme_bw()+
+  geom_text(aes(label=count), vjust=-0.3, size=3.5)+
+  labs(title = "TOP 10 RAVENS WITH FAILS", subset = "delays", x = "raven name", y = "total fails")+
+  theme(legend.position = "right")+theme(legend.key.width = unit(.5,"cm"),legend.key.height = unit(.5,"cm"))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.x = element_blank(),axis.ticks.x = element_blank(),axis.title.x = element_blank())
+T1
+```
+
+
+
+```{r}
+## top 10 ravens without fails 
+
+total_delay_without_fails = data%>%filter(FIRST_GET_RESPONSE_SUCCESS_D ==0 & PAGE_BROWSING_DELAY ==0 & 
+                              TCP_SETUP_TOTAL_DELAY ==0 & PAGE_CONTENT_DOWNLOAD_TOTAL_D ==0 & 
+                              FIRST_DNS_RESPONSE_SUCCESS_D ==0 & DNS_RESPONSE_SUCCESS_DELAY ==0 & 
+                              FIRST_TCP_RESPONSE_SUCCESS_D ==0 & PAGE_SR_DELAYS ==0 & 
+                              SYN_SYN_DELAY ==0 & TCP_CONNECT_DELAY ==0 & PAGE_BROWSING_DELAYS ==0)%>%
+  group_by(RAVEN_NAME)%>%
+  summarise(count = n())%>%
+  arrange(-count)
+
+View(total_delay_without_fails)
+top_10_without_fails = total_delay_without_fails%>%head(10)
+View(top_10_without_fails)
+
+
+# plot2
+T2 = ggplot(top_10_without_fails, aes(x= reorder(RAVEN_NAME,-count), y = count))+
+  geom_bar(stat = 'Identity', width = 0.5,aes(fill = RAVEN_NAME))+theme_bw()+
+  geom_text(aes(label=count), vjust=-0.3, size=3.5)+
+  labs(title = "TOP 10 RAVENS WITHOUT FAILS", subset = "delays", x = "raven name", y = "total fails")+
+  theme(legend.position = "right")+theme(legend.key.width = unit(.5,"cm"),legend.key.height = unit(.5,"cm"))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.x = element_blank(),axis.ticks.x = element_blank(),axis.title.x = element_blank())
+T2
+
+```
+
+```{r}
+## Family with most fails
+  
+family_with_fails = data%>%filter(FIRST_GET_RESPONSE_SUCCESS_D !=0 & PAGE_BROWSING_DELAY !=0 & 
+                                      TCP_SETUP_TOTAL_DELAY !=0 & PAGE_CONTENT_DOWNLOAD_TOTAL_D !=0 & 
+                                      FIRST_DNS_RESPONSE_SUCCESS_D !=0 & DNS_RESPONSE_SUCCESS_DELAY !=0 & 
+                                      FIRST_TCP_RESPONSE_SUCCESS_D !=0 & PAGE_SR_DELAYS !=0 & 
+                                      SYN_SYN_DELAY !=0 & TCP_CONNECT_DELAY !=0 & PAGE_BROWSING_DELAYS !=0)%>%
+  group_by(FAMILY_NAME)%>%
+  summarise(count = n())%>%
+  arrange(-count)
+View(family_with_fails)
+
+## family with least fails
+
+family_with_least_fails = family_with_fails%>%tail(1)
+View(family_with_least_fails)
+
+# plot3
+T3 = ggplot(family_with_fails, aes(x= reorder(FAMILY_NAME,-count), y = count))+
+  geom_bar(stat = 'Identity', width = 0.5,aes(fill = FAMILY_NAME))+theme_bw()+
+  geom_text(aes(label=count), vjust=-0.3, size=3.5)+
+  labs(title = "FAMILY WITH MOST AND LEAST FAILS", subset = "delays", x = "family name", y = "total fails")+
+  theme(legend.position = "right")+theme(legend.key.width = unit(.5,"cm"),legend.key.height = unit(.5,"cm"))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.x = element_blank(),axis.ticks.x = element_blank(),axis.title.x = element_blank())
+T3
+
+
+```
+
+```{r}
+## the family member with most fails
+
+family_member_with_fails = data%>%filter(FIRST_GET_RESPONSE_SUCCESS_D !=0 & PAGE_BROWSING_DELAY !=0 & 
+                                      TCP_SETUP_TOTAL_DELAY !=0 & PAGE_CONTENT_DOWNLOAD_TOTAL_D !=0 & 
+                                      FIRST_DNS_RESPONSE_SUCCESS_D !=0 & DNS_RESPONSE_SUCCESS_DELAY !=0 & 
+                                      FIRST_TCP_RESPONSE_SUCCESS_D !=0 & PAGE_SR_DELAYS !=0 & 
+                                      SYN_SYN_DELAY !=0 & TCP_CONNECT_DELAY !=0 & PAGE_BROWSING_DELAYS !=0)%>%
+  group_by(MEMBER_NAME)%>%
+  summarise(count = n())%>%
+  arrange(-count)
+View(family_member_with_fails)
+family_member_with_most_fails = family_member_with_fails%>%head(5)
+View(family_member_with_most_fails)
+
+
+#plot4
+
+T4 = ggplot(family_member_with_most_fails, aes(x= reorder(MEMBER_NAME,-count), y = count))+
+  geom_bar(stat = 'Identity', width = 0.5,aes(fill = MEMBER_NAME))+theme_bw()+
+  geom_text(aes(label=count), vjust=-0.3, size=3.5)+
+  labs(title = "FAMILY MEMBER WITH MOST FAILS", subset = "delays", x = "member name", y = "total fails")+
+  theme(legend.position = "right")+theme(legend.key.width = unit(.5,"cm"),legend.key.height = unit(.5,"cm"))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.x = element_blank(),axis.ticks.x = element_blank(),axis.title.x = element_blank())
+T4
+
+
+## the family member with least fails
+
+family_member_with_least_fails = family_member_with_fails%>%tail(5)
+View(family_member_with_least_fails)
+
+#plot5
+T5 = ggplot(family_member_with_least_fails, aes(x= reorder(MEMBER_NAME,-count), y = count))+
+  geom_bar(stat = 'Identity', width = 0.5,aes(fill = MEMBER_NAME))+theme_bw()+
+  geom_text(aes(label=count), vjust=-0.3, size=3.5)+
+  labs(title = "FAMILY MEMBER WITH LEAST FAILS", subset = "delays", x = "member name", y = "total fails")+
+  theme(legend.position = "right")+theme(legend.key.width = unit(.5,"cm"),legend.key.height = unit(.5,"cm"))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.x = element_blank(),axis.ticks.x = element_blank(),axis.title.x = element_blank())
+T5
+```
+
+```{r}
+#########  ARIMA MODEL ##########
+total_date = data%>%filter(FIRST_GET_RESPONSE_SUCCESS_D !=0 & PAGE_BROWSING_DELAY !=0 & 
+                             TCP_SETUP_TOTAL_DELAY !=0 & PAGE_CONTENT_DOWNLOAD_TOTAL_D !=0 & 
+                             FIRST_DNS_RESPONSE_SUCCESS_D !=0 & DNS_RESPONSE_SUCCESS_DELAY !=0 & 
+                             FIRST_TCP_RESPONSE_SUCCESS_D !=0 & PAGE_SR_DELAYS !=0 & 
+                             SYN_SYN_DELAY !=0 & TCP_CONNECT_DELAY !=0)%>%
+  group_by(DATETIME)%>%
+  summarise(count = n())
+View(total_date)
+
+
+date_ts =ts(total_date$count, start =c(2018, 7, 6), end = c(2018, 8, 5), frequency = 1) 
+d_total_sum = diff(total_date$count, 1)
+adf.test(d_total_sum)
+
+## estimating AR model
+fit_diff_ar = arima(d_total_sum, order = c(1, 0, 5))
+d_total_sum = diff(d_total_sum, 1)
+acf(d_total_sum)
+pacf(d_total_sum)
+fit_diff_ar = arima(d_total_sum, order = c(1, 0, 5))
+fit_diff_ar
+
+## forcasting
+fit_diff_arf = forecast(fit_diff_ar, h = 4)
+plot(forecast(fit_diff_ar, h = 4), include = 30)
+
+```
+
